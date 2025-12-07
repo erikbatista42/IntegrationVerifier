@@ -1,6 +1,6 @@
-# Technical Support Agent
+# IntegrationVerifier
 
-Technical support agent where you can ask questions about your codebase and verify scripts on live websites.
+Support agent where you can ask questions about your codebase and verify scripts on live websites.
 
 ## What It Does
 
