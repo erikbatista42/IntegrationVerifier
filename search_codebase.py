@@ -14,20 +14,6 @@ client = Client(api_key=os.getenv("XAI_API_KEY"), timeout=3600)
 xai_api_key = os.getenv("XAI_API_KEY")
 greptile_api_key = os.getenv("GREPTILE_API_KEY")
 
-# chat = client.chat.create(model="grok-4-1-fast")
-
-# # Get file content
-# content = client.files.content("file_35a96920-fa92-47a9-a7d9-68c60f11c9e3")
-
-# chat.append(system(f"You are Motive Support. Your goal is to help answer any Motive Admin platform questions. You will reference this documentation {content}. If you have found the answer in the documentation, don't say anything else, just reference the documentation. Make sure that you never reference the platform documentation and focus on answering questions here."))
-
-# chat.append(user("Where can I see a list of dealers?"))
-
-# response = chat.sample()
-# print(response.content)
-
-# -------------
-# Have the user ask a question like "how does the Gubagoo script work?" and it searches the codebase.
 def index_repo(repo="erikbatista42/tiny-llm"):
     """Index a repo with Greptile (run once before querying)"""
     response = requests.post(
@@ -120,22 +106,3 @@ if __name__ == "__main__":
 
     print(urls)
 
-# ============================================
-# CHECK URLS ON TARGET WEBSITE
-# ============================================
-# from script_locator import check_multiple_files
-
-# website_url = "https://gooba.motivehq.site/"  # Change this to your target
-
-# if urls:
-#     print(f"\n🌐 Checking {len(urls)} URL(s) on {website_url}\n")
-#     results = check_multiple_files(website_url, urls, headless=True)
-    
-#     print("\n" + "=" * 60)
-#     print("📋 RESULTS")
-#     print("=" * 60)
-#     for url, result in results.items():
-#         status = "✅ FOUND" if result["found"] else "❌ NOT FOUND"
-#         print(f"{status}: {url}")
-# else:
-#     print("No URLs to check.")
