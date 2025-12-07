@@ -108,32 +108,34 @@ Only include complete, valid URLs (starting with http:// or https://).
 
 console = Console()
 
-answer = ask_about_code("Tell me how the srp is integrated")
+# Only run this when executing the file directly, NOT when importing
+if __name__ == "__main__":
+    answer = ask_about_code("Tell me how the srp is integrated")
 
-# console.print(Markdown(answer))
-result = extract_urls_with_grok(answer)
-urls = []
-for item in result:
-    urls.append(item['url'])
+    # console.print(Markdown(answer))
+    result = extract_urls_with_grok(answer)
+    urls = []
+    for item in result:
+        urls.append(item['url'])
 
-print(urls)
+    print(urls)
 
 # ============================================
 # CHECK URLS ON TARGET WEBSITE
 # ============================================
-from script_locator import check_multiple_files
+# from script_locator import check_multiple_files
 
-website_url = "https://gooba.motivehq.site/"  # Change this to your target
+# website_url = "https://gooba.motivehq.site/"  # Change this to your target
 
-if urls:
-    print(f"\n🌐 Checking {len(urls)} URL(s) on {website_url}\n")
-    results = check_multiple_files(website_url, urls, headless=True)
+# if urls:
+#     print(f"\n🌐 Checking {len(urls)} URL(s) on {website_url}\n")
+#     results = check_multiple_files(website_url, urls, headless=True)
     
-    print("\n" + "=" * 60)
-    print("📋 RESULTS")
-    print("=" * 60)
-    for url, result in results.items():
-        status = "✅ FOUND" if result["found"] else "❌ NOT FOUND"
-        print(f"{status}: {url}")
-else:
-    print("No URLs to check.")
+#     print("\n" + "=" * 60)
+#     print("📋 RESULTS")
+#     print("=" * 60)
+#     for url, result in results.items():
+#         status = "✅ FOUND" if result["found"] else "❌ NOT FOUND"
+#         print(f"{status}: {url}")
+# else:
+#     print("No URLs to check.")
