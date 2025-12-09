@@ -60,8 +60,8 @@ def chat(message, history, website_url):
 # Launch the chat UI
 demo = gr.ChatInterface(
     fn=chat,
-    title="Technical Support Agent",
-    description="Enter a website URL and ask if any scripts or integrations are active or working.",
+    title="IntegrationVerifier",
+    description="AI-powered tool to verify script integrations. Ask questions about your codebase and check if scripts are loading on live websites.",
     additional_inputs=[
         gr.Textbox(
             label="Website URL to Check",

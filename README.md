@@ -22,8 +22,8 @@ Support agent where you can ask questions about your codebase and verify scripts
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/yourusername/ai-support-agent.git
-cd ai-support-agent
+git clone https://github.com/erikbatista42/IntegrationVerifier.git
+cd IntegrationVerifier
 ```
 
 ### 2. Install dependencies
@@ -63,7 +63,7 @@ Then open http://127.0.0.1:7860 in your browser.
 ## Project Structure
 
 ```
-ai-support-agent/
+IntegrationVerifier/
 ├── app.py              # Gradio chat UI
 ├── search_codebase.py  # Greptile + Grok integration
 ├── script_locator.py   # Playwright network monitoring
