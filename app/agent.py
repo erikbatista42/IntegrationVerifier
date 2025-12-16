@@ -1,6 +1,7 @@
 import os
 import re
 import requests
+import airtable
 from dotenv import load_dotenv
 from xai_sdk import Client
 from xai_sdk.chat import system, user, file
@@ -72,21 +73,27 @@ def check_script_on_website(website_url, script_to_find):
             call_stack_summarized = call_stack_chat.append(
                 user(f"Tell me where this script is origninating from using the call stack information: {str(call_stack)}")).sample()
 
-            found_scripts.append(
-                {
+            found_scripts_data = {
                     "script_url": response.url,
-                    "script_status": response.status,
+                    "script_status": str(response.status),
                     "initiator": response.frame.url if response.frame else "Unknown",
-                    "call_stack": call_stack_summarized.content
+                    "call_stack_summary": call_stack_summarized.content
                 }
-            )
+
+            found_scripts.append(found_scripts_data)
+            send_data_to_airtable(table_name_data="agent_logs", at_base_id="app3gIPPZQKBxzTVa", data_to_send=found_scripts_data)
+
+            
     for script in found_scripts:
         print(f"Script URL: {script["script_url"]}")
         print(f"Status: {script["script_status"]}")
         print(f"Initiator: {script["initiator"]}")
-        print(f"Call stack summary: {script["call_stack"]}")
+        print(f"Call stack summary: {script["call_stack_summary"]}")
     return found_scripts
 
+def send_data_to_airtable(table_name_data:str, at_base_id:str, data_to_send: dict):
+    at = airtable.Airtable(base_id=at_base_id, api_key=os.getenv("AIRTABLE_API_KEY"))
+    at.create(table_name=table_name_data, data=data_to_send)
 
 if __name__ == "__main__":
     content = ask_file("What does the srp integration do?")
