@@ -14,29 +14,31 @@ client = Client(api_key=os.getenv("XAI_API_KEY"))
 chat = client.chat.create(model="grok-4")
 
 
-
 class Agent():
     
-    def __init__(self, file_id: str, system_prompt: str):
+    def __init__(self, file_id: str, system_prompt: str, at_table_name:str):
         # Agent config
         self.file_id = file_id
         self.system_prompt = system_prompt
         
         # Airtable config
-        self.at_table_name: str # agent_logs
+        self.at_table_name = at_table_name
 
     
-    def ask_file(self, user_prompt:str):
+    def ask_file(self, user_prompt:str, extract_urls=False):
         chat.append(system(self.system_prompt))
         chat.append(user(user_prompt, file(self.file_id)))
 
         print("🔎 AGENT IS SEARCHING FILE GIVEN...")
         response = chat.sample()
         print("RESPONSE FROM AGENT:\n")
+
+        if extract_urls:
+            return self.extract_urls_from_content(response.content)
         
         return response.content
 
-    def extract_urls_from_content(content):
+    def extract_urls_from_content(self, content):
         # given the content, grab the URLs and put it into a python list
         js_urls_in_content = re.findall(r'https?://[^\s"\'<>]+\.js', content)
         return js_urls_in_content
@@ -104,17 +106,21 @@ class Agent():
             print(f"Status: {script["script_status"]}")
             print(f"Initiator: {script["initiator"]}")
             print(f"Call stack summary: {script["call_stack_summary"]}")
+
         return found_scripts
 
 if __name__ == "__main__":
-    # content = ask_file("What does the srp integration do?")
-    # integration_urls = extract_urls_from_content(content)
-    # results = check_script_on_website(website_url="https://gooba.motivehq.site/", script_to_find=integration_urls[0])
+    agent = Agent(
+        file_id="file_6ed62445-f5fe-4478-a588-e7fc3c8a796c", 
+        system_prompt="You are an information agent. Your job is to pick the closest integration section from the document we're looking at and provide the exact name, description and the list of URLs the integration has if it has any.",
+        at_table_name="agent_logs"
+        )
 
-    # 
-    agent = Agent(file_id="file_6ed62445-f5fe-4478-a588-e7fc3c8a796c")
+    integration_information_urls = agent.ask_file("What does the srp integration do?", extract_urls=True)
 
-    agent.system_prompt = "You are an information agent. Your job is to pick the closest integration section from the document we're looking at and provide the exact name, description and the list of URLs the integration has if it has any."
-    agent.ask_file("What does the srp integration do?")
+    for url in integration_information_urls:
+        result = agent.check_script_on_website(website_url="https://gooba.motivehq.site/", script_to_find=url)
+        print(result) 
+
     
 
