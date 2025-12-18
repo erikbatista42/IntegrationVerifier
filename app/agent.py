@@ -1,4 +1,5 @@
 import os
+import datetime
 import airtable
 from dotenv import load_dotenv
 from xai_sdk import Client
@@ -23,6 +24,7 @@ class Agent():
 
         # Agent tools setup
         self.tools_map = None
+        self.current_user_prompt = None
 
 
     def setup_tools(self):
@@ -58,6 +60,7 @@ class Agent():
 
     def run_with_tools(self, user_prompt: str):
         self.setup_tools()
+        self.current_user_prompt = user_prompt
 
         # new chat with tools enabled
         tool_chat = client.chat.create(
@@ -126,16 +129,22 @@ class Agent():
                 call_stack = initiator_info.get("stack", {}).get("callFrames", [])
                 
                 call_stack_chat = client.chat.create(model="grok-4-1-fast-reasoning")
-                call_stack_chat.append(system("You are professional web developer. Your job is to review the call stack information and tell me in one concise sentence where the script originates from. So your answer should look like this: 'This script orignates from the GTM-XYZ'. Don't be limited to this exact same answer. Review the script's call stack and provide an accurate answer."))
+                call_stack_chat.append(system(f"You are professional web developer. Your job is to review the call stack information and tell me in one concise sentence where the script originates from. So your answer should look like this: 'This script orignates from the GTM-XYZ'. Don't be limited to this exact same answer. Review the script's call stack and provide an accurate answer. If the script's call stack is empty, it means that it originated from the website. So say 'this script originated from {website_url}"))
 
                 call_stack_summarized = call_stack_chat.append(
                     user(f"Tell me where this script is origninating from using the call stack information: {str(call_stack)}")).sample()
 
                 found_scripts_data = {
-                        "script_url": response.url,
+                        "response_script_url": response.url,
                         "script_status": str(response.status),
                         "initiator": response.frame.url if response.frame else "Unknown",
-                        "call_stack_summary": call_stack_summarized.content
+                        "call_stack_summary": call_stack_summarized.content,
+
+                        "user_prompt": self.current_user_prompt,
+                        "website_checked": website_url,         
+                        "date_and_time": datetime.datetime.now().isoformat(),  
+                        "human_verified": "not yet",
+                        "is_correct": "",   
                     }
 
                 found_scripts.append(found_scripts_data)
@@ -158,7 +167,8 @@ if __name__ == "__main__":
         system_prompt="You are an information agent. When the user wants to verify a script on a website, use the check_script_on_website tool.",
         at_table_name="agent_logs"
         )
-
+    # sample prompt to verify integration
+    # check in https://gooba.motivehq.site/ if the autohub integration is connected on the website.
     user_input = input("Ask about integrations in Motive: \n \n")
     result = agent.run_with_tools(user_input)
     print(result)
