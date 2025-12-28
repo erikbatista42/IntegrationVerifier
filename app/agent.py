@@ -73,20 +73,37 @@ class Agent():
         tool_chat.append(user(user_prompt, file(self.file_id)))
 
         response = tool_chat.sample()
-        print("RESPONSE TOOL CALLS-----", response.tool_calls)
+        # print("RESPONSE TOOL CALLS-----", response.tool_calls)
 
         for tool_call in response.tool_calls:
-            function_name = tool_call.function.name
+            tool_name = tool_call.function.name
 
-            if function_name == "check_script_on_website":
+            if tool_name == "check_script_on_website":
+                print("Using tool: check_script_on_website")
                 # print(f"Using tool: {function_name}")
                 function_args = json.loads(tool_call.function.arguments)
                 # print(f"   Arguments: {function_args}")
 
-                result = self.tools_map[function_name](**function_args)
+                result = self.tools_map[tool_name](**function_args)
                 return result
 
+        print("Using tool: read_attachment")
         # If we get here, AI answered using built-in tools (like read_attachment)
+        found_scripts_data = {
+                        "tool_used": "read_attachment",
+                        "read_attachment_tool_response": response.content,
+                        "date_and_time": datetime.datetime.now().isoformat(),
+                        "user_prompt": self.current_user_prompt,     
+                        "human_verified": "not yet",
+                        "response_script_url": "",
+                        "script_status": "",
+                        "initiator": "",
+                        "call_stack_summary": "",
+                        "is_correct": "", 
+                    }
+        airtable_instance = airtable.Airtable(base_id=os.getenv("AIRTABLE_BASE_ID"), api_key=os.getenv("AIRTABLE_API_KEY"))
+        airtable_instance.create(table_name=self.at_table_name, data=found_scripts_data)
+        print(f"AGENT RESPONSE: {response.content}")
         return response.content
 
 
@@ -135,6 +152,8 @@ class Agent():
                     user(f"Tell me where this script is origninating from using the call stack information: {str(call_stack)}")).sample()
 
                 found_scripts_data = {
+                        "tool_used": "check_script_on_website",
+                        "read_attachment_tool_response": "",
                         "response_script_url": response.url,
                         "script_status": str(response.status),
                         "initiator": response.frame.url if response.frame else "Unknown",
@@ -153,22 +172,49 @@ class Agent():
                 airtable_instance = airtable.Airtable(base_id=os.getenv("AIRTABLE_BASE_ID"), api_key=os.getenv("AIRTABLE_API_KEY"))
                 airtable_instance.create(table_name=self.at_table_name, data=found_scripts_data)
             
-        # for script in found_scripts:
-        #     print(f"Script URL: {script["script_url"]}")
-        #     print(f"Status: {script["script_status"]}")
-        #     print(f"Initiator: {script["initiator"]}")
-        #     print(f"Call stack summary: {script["call_stack_summary"]}")
+        if not found_scripts:
+            print(f"No matching scripts found for '{script_to_find}' on {website_url}")
+            
+            # Log "no scripts found" to Airtable
+            no_scripts_data = {
+                "tool_used": "check_script_on_website",
+                "read_attachment_tool_response": "",
+                "response_script_url": f"No match for: {script_to_find}",
+                "script_status": "not found",
+                "initiator": "",
+                "call_stack_summary": "",
+                "user_prompt": self.current_user_prompt,
+                "website_checked": website_url,
+                "date_and_time": datetime.datetime.now().isoformat(),
+                "human_verified": "not yet",
+                "is_correct": "",
+            }
+            airtable_instance = airtable.Airtable(base_id=os.getenv("AIRTABLE_BASE_ID"), api_key=os.getenv("AIRTABLE_API_KEY"))
+            airtable_instance.create(table_name=self.at_table_name, data=no_scripts_data)
+
+        else:
+            for script in found_scripts:
+                print(f"Script URL: {script["response_script_url"]}")
+                print(f"Status: {script["script_status"]}")
+                print(f"Initiator: {script["initiator"]}")
+                print(f"Call stack summary: {script["call_stack_summary"]}")
 
         return found_scripts
 
 if __name__ == "__main__":
     agent = Agent(
-        file_id="file_5b1f18d6-1536-4514-85b1-c5afc4ecf000", 
-        system_prompt="You are an information agent. When the user wants to verify a script on a website, use the check_script_on_website tool.",
+        file_id="file_3c2ea74b-8cbd-4d5b-b6df-24feb896be78", 
+        system_prompt="You are an information agent. When the user wants to verify a script on a website, use the check_script_on_website tool. IMPORTANT: Always use the exact URLs listed in the document for the 'script_to_find' parameter - do not modify or guess different URLs.",
         at_table_name="agent_logs"
         )
-    # sample prompt to verify integration
-    # check in https://gooba.motivehq.site/ if the autohub integration is connected on the website.
-    user_input = input("Ask about integrations in Motive: \n \n")
+
+    ''' sample prompt to ask about integration details '''
+    # How does the Intercom integration work?
+
+    '''sample prompt to verify integration'''
+    # check in https://exquisite-mochi-134b2b.netlify.app/ if the intercom integration is connected on the website.
+    user_input = input("Ask about integrations within Erik's Site Builder: \n \n")
+
+    print("Agent running...")
     result = agent.run_with_tools(user_input)
-    print(result)
+    # print(result)
