@@ -24,6 +24,7 @@ class Agent():
         self.at_table_name = at_table_name
 
         # Agent tools setup
+        self.tool_definitions = None
         self.tools_map = None
         self.current_user_prompt = None
 
@@ -54,7 +55,7 @@ class Agent():
         tools_map = {
             "check_script_on_website": self.check_script_on_website
         }
-
+        
         self.tool_definitions = tool_definitions
         self.tools_map = tools_map
 
