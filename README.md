@@ -1,5 +1,5 @@
 ### Click the YouTube link below to watch an overview of how this agent works 🎥
-https://www.youtube.com/watch?v=ZK-R9LbOHhI
+[![Watch on YouTube](yt_thumbnail.png)](https://www.youtube.com/watch?v=ZK-R9LbOHhI)
 ---
 Tech support AI agent that provides details on your app's integrations and automatically verifies their implementation on a website.
 > **Designed to automate the repetitive process of troubleshooting integrations, saving time on manual verification.**
